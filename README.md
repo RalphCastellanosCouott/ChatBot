@@ -444,4 +444,4 @@ chatbot-ccd/
 └── index.html
 ```
 
-![Foto de react](images/img10.jpg)
+![Foto de react](images/img10.jpeg)
