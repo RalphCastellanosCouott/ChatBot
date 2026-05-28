@@ -14,6 +14,8 @@ Chatbot inteligente basado en arquitectura RAG que permite a estudiantes consult
 | **Groq** | Modelo de lenguaje (LLM) para el AI Agent |
 | **Google Sheets** | Calendario de eventos académicos |
 | **HuggingFace** | Embeddings para el sistema RAG |
+| React 18 | Framework de interfaz de usuario |
+| Vite | Bundler y servidor de desarrollo |
 
 ---
 
@@ -359,3 +361,87 @@ En el flujo principal, agregar el nodo **"Consultar_Documentos_CCD"** (tipo Vect
 - Las credenciales (API Keys, contraseñas de bases de datos, tokens de Google) **no se exportan** con el workflow de n8n. Al importar el `.json` en una nueva instancia, deben reconfigurarse manualmente.
 - Al migrar el workflow a otro servicio de n8n, recordar configurar la credencial de Supabase con el **puerto 6543** desde el inicio para evitar el error de conexiones máximas (`EMAXCONNSESSION`).
 - La cuenta de Google usada para Google Sheets tuvo que ser **personal**; ya que la institucional no permitía los permisos de Google Cloud necesarios.
+
+---
+
+## Despliegue — Interfaz web (React + Vite)
+
+La interfaz del chatbot está desarrollada en **React + Vite** y se conecta al agente de n8n mediante un webhook.
+
+### Prerrequisitos
+
+- [Node.js](https://nodejs.org) versión 18 o superior (incluye npm)
+- Visual Studio Code (recomendado)
+
+Verifica tu instalación con:
+```bash
+node --version
+```
+
+### Instalación y ejecución
+
+**1. Crear el proyecto con Vite**
+```bash
+npm create vite@latest chatbot-ccd -- --template react
+```
+Cuando pregunte el framework selecciona **React**, luego **JavaScript**.
+
+**2. Entrar a la carpeta e instalar dependencias**
+```bash
+cd chatbot-ccd
+npm install
+```
+
+**3. Reemplazar el archivo principal**
+
+- Navega a `src/App.jsx`
+- Borra todo su contenido y pega el contenido del archivo `ChatbotCCD.jsx`
+
+**4. Configurar el proxy para evitar errores CORS**
+
+Reemplaza todo el contenido de `vite.config.js` con:
+```js
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/webhook': {
+        target: 'https://unab-n8n.duckdns.org:5678',
+        changeOrigin: true,
+        secure: false
+      }
+    }
+  }
+})
+```
+
+**5. Verificar la URL del webhook**
+
+En `src/App.jsx` asegúrate que la URL sea la relativa (sin dominio):
+```js
+const WEBHOOK_URL = "/webhook/71bcaedc-9c88-4af8-9679-2ef8f284d824/chat";
+```
+
+**6. Correr el proyecto**
+```bash
+npm run dev
+```
+
+Abrir en el navegador: `http://localhost:5173`
+
+### Estructura del proyecto
+
+```
+chatbot-ccd/
+├── src/
+│   ├── App.jsx          ← Componente principal del chatbot
+│   └── main.jsx         ← Punto de entrada de React
+├── vite.config.js       ← Configuración del proxy CORS
+├── package.json
+└── index.html
+```
+
+![Foto de react](images/img10.jpg)
